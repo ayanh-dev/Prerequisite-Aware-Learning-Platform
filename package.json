@@ -7,16 +7,24 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/learning-graph.test.ts",
+    "test": "tsx --test src/lib/password.test.ts src/lib/learning-graph.test.ts src/lib/dashboard-metrics.test.ts",
     "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:create-instructor": "tsx scripts/create-instructor.ts",
+    "db:set-password": "tsx scripts/set-local-password.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@xyflow/react": "^13.0.2",
+    "lucide-react": "^1.74.0",
     "next": "16.4.6",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "recharts": "^3.11.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",

@@ -1,69 +1,156 @@
-import Image from "next/image";
+import { Suspense } from "react";
+import {
+  ArrowRight,
+  BookOpen,
+  Code2,
+  Database,
+  GraduationCap,
+  LockKeyhole,
+} from "lucide-react";
+import { connection } from "next/server";
+import { redirect } from "next/navigation";
+import { DashboardClient } from "./dashboard-client";
+import { CourseCatalog } from "./course-catalog";
+import { signOutAction } from "./actions";
+import { loadDashboardData } from "@/lib/dashboard-data";
+import { getCurrentUser } from "@/lib/auth";
 
-export default function Home() {
+type HomeProps = {
+  searchParams: Promise<{ course?: string | string[] }>;
+};
+
+function PageLoading() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="flex min-h-screen items-center justify-center bg-[#241d55] px-4 text-white">
+      <div className="flex items-center gap-3 text-sm text-white/65">
+        <span className="h-2 w-2 animate-pulse rounded-full bg-violet-300" />
+        Loading your PathWise workspace…
+      </div>
+    </main>
+  );
+}
+
+function SetupRequired({ missing }: { missing: string[] }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#241d55] px-4 py-10 text-white">
+      <section className="w-full max-w-[560px] rounded-[28px] border border-white/10 bg-[#2b245f] p-7 shadow-[0_30px_90px_rgba(8,5,30,0.35)] sm:p-9">
+        <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#af9dff] to-[#8270ed] text-[#211a50]">
+          <Code2 size={23} />
+        </div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-200">
+          PATHWISE SETUP
+        </p>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight">Connect your workspace</h1>
+        <p className="mt-2 text-sm leading-6 text-white/55">
+          PathWise stores courses and learning history in a local SQLite database on this Mac.
+        </p>
+        <div className="mt-6 grid gap-2 sm:grid-cols-2">
+          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
+            <Database size={17} className="text-violet-200" />
+            <p className="mt-2 text-xs font-bold text-white/85">Database</p>
+            <p className="mt-1 text-[10px] leading-4 text-white/45">Prisma + local SQLite file</p>
+          </div>
+          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
+            <LockKeyhole size={17} className="text-emerald-200" />
+            <p className="mt-2 text-xs font-bold text-white/85">Session</p>
+            <p className="mt-1 text-[10px] leading-4 text-white/45">Local password session</p>
+          </div>
+        </div>
+        <div className="mt-5 rounded-2xl border border-amber-200/15 bg-amber-200/[0.04] p-4">
+          <p className="text-xs font-bold text-amber-100">Missing local environment values</p>
+          <p className="mt-1 text-[10px] leading-5 text-white/50">
+            Copy <code>.env.example</code> to <code>.env</code>, set the local database path, then restart <code>npm run dev</code>.
           </p>
+          <ul className="mt-3 grid gap-1 text-[10px] text-amber-100/80 sm:grid-cols-2">
+            {missing.map((name) => <li key={name}>{name}</li>)}
+          </ul>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+    </main>
+  );
+}
+
+function ProfileRequired({ email }: { email: string }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#241d55] px-4 py-10 text-white">
+      <section className="w-full max-w-[500px] rounded-[28px] border border-white/10 bg-[#2b245f] p-8 text-center shadow-[0_30px_90px_rgba(8,5,30,0.35)]">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-300/10 text-violet-200">
+          <LockKeyhole size={21} />
         </div>
-      </main>
-    </div>
+        <h1 className="mt-5 text-xl font-bold">PathWise profile not found</h1>
+        <p className="mt-2 text-xs leading-5 text-white/55">
+          {email
+            ? `The signed-in email ${email} is not linked to a PathWise profile.`
+            : "The signed-in account could not be found."}
+          {" "}Sign out and try again.
+        </p>
+        <form action={signOutAction} className="mt-6">
+          <button className="rounded-xl bg-[#9a85ff] px-4 py-2.5 text-xs font-bold text-[#211a50] transition hover:bg-[#b2a4ff]" type="submit">
+            Sign out
+          </button>
+        </form>
+      </section>
+    </main>
+  );
+}
+
+function NoCourses({ name, role }: { name: string; role: "LEARNER" | "INSTRUCTOR" }) {
+  const isLearner = role === "LEARNER";
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#241d55] px-4 py-10 text-white">
+      <section className="w-full max-w-[520px] rounded-[28px] border border-white/10 bg-[#2b245f] p-8 text-center shadow-[0_30px_90px_rgba(8,5,30,0.35)]">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-300/10 text-violet-200">
+          {isLearner ? <BookOpen size={21} /> : <GraduationCap size={22} />}
+        </div>
+        <h1 className="mt-5 text-xl font-bold">Welcome, {name}</h1>
+        <p className="mt-2 text-xs leading-5 text-white/55">
+          {isLearner
+            ? "Choose a course to add it to your learning dashboard and start building mastery."
+            : "No courses are assigned to your instructor profile yet. Courses you create will appear here when they are connected to your account."}
+        </p>
+        {isLearner && <CourseCatalog />}
+        <form action={signOutAction} className="mt-6">
+          <button className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-xs font-semibold text-white/75 transition hover:bg-white/10 hover:text-white" type="submit">
+            Sign out <ArrowRight size={13} />
+          </button>
+        </form>
+      </section>
+    </main>
+  );
+}
+
+async function DashboardRequest({ searchParams }: HomeProps) {
+  await connection();
+  const authUser = await getCurrentUser();
+  if (!authUser) {
+    redirect("/login");
+  }
+
+  const params = await searchParams;
+  const requestedCourseId =
+    typeof params.course === "string" ? params.course : undefined;
+  const result = await loadDashboardData(authUser, requestedCourseId);
+
+  if (result.kind === "profile-missing") {
+    return <ProfileRequired email={result.email} />;
+  }
+  if (result.kind === "no-courses") {
+    return <NoCourses name={result.profile.name} role={result.profile.role} />;
+  }
+
+  return <DashboardClient data={result.data} key={result.data.selectedCourseId} />;
+}
+
+export default function Home(props: HomeProps) {
+  const missing = process.env.DATABASE_URL ? [] : ["DATABASE_URL"];
+  if (missing.length) {
+    return <SetupRequired missing={missing} />;
+  }
+
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <DashboardRequest searchParams={props.searchParams} />
+    </Suspense>
   );
 }
